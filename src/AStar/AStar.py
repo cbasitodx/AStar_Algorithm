@@ -63,9 +63,12 @@ A* algorithm
     * start_vertex: 'name' attribute of the starting vertex
     * end_vertex: 'name' attribute of the goal vertex
 '''
-def AStar(graph : ig.Graph, heuristic : Callable[[ig.Graph, ig.Vertex, ig.Vertex, List[ig.Vertex], Dict[ig.Vertex, ig.Vertex]], float], start_vertex : str, end_vertex : str) -> List[str]:
+def AStar(graph : ig.Graph, heuristic : Callable[[ig.Graph, ig.Vertex, ig.Vertex, List[ig.Vertex], Dict[ig.Vertex, ig.Vertex]], float], start_vertex : str, end_vertex : str) -> Tuple[List[str], List[str]]:
 
     # TODO: ANADIR COMPROBACIONES INICIALES DE Q LOS NOMBRES NO SON IGUALES ETC ETC....
+
+    # This is a list that has all the nodes (IN ORDER) visited by the algorithm
+    intermediatePath : List[str] = []
 
     # We first obtain the starting vertex and the goal vertex as a igraph Vertex object
     start : ig.Vertex = graph.vs.find(name=start_vertex)
@@ -92,9 +95,14 @@ def AStar(graph : ig.Graph, heuristic : Callable[[ig.Graph, ig.Vertex, ig.Vertex
         # Node that we are going to expand. Its the one in the openSet with the lowest fScore value
         current : ig.Vertex = min(openSet, key=fScore.get) # This gets the minimum node (key) in the dict fScore sorting by the keys (fScore.get is a method of dict that returns the value of a given key)
 
-        if current == goal:
+        intermediatePath.append(current["name"])
+
+        if current == goal: 
             
-            return getPath(cameFrom, current, start)            
+            # Final, optimal route        
+            finalRoute = getPath(cameFrom, current, start)
+            
+            return intermediatePath, finalRoute
 
         # We remove the node we are expanding from the openSet (is the same as adding to a "CLOSED LIST")
         openSet.remove(current)

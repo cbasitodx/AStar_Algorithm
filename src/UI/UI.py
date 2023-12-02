@@ -69,13 +69,11 @@ def initGUI(graph : ig.Graph, algorithm : Callable[[ig.Graph, Callable, str, str
     text2 = font.render('Seleccione un destino', True, (0,0,0), (255,255,255))
     text3 = font.render('Mostrando ruta...', True, (0,0,0), (255,255,255))
 
-
-    # UI LOOP
-    n=0
     # We update the screen
     # (flip updates the whole surface)
     pygame.display.flip()
 
+    # UI LOOP
     phase=0
     while True:
         # phase 0: Start button hasnt been clicked
@@ -172,42 +170,43 @@ def initGUI(graph : ig.Graph, algorithm : Callable[[ig.Graph, Callable, str, str
                                 # Phase change
                                 phase=3
 
-                                # Now we call the algorithm
-                                route = algorithm(graph, heuristic, origin, destiny)
+                                # Now we call the algorithm.
+                                # It returns an intermediatePath (the steps taken by the algorithm)
+                                # and a route (the final, optimal route)
+                                intermediatePath, route = algorithm(graph, heuristic, origin, destiny)
 
                                 break
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         sys.exit()
 
-        # phase 3: Show the route
+        # phase 3: Show the algorithm steps
         elif phase==3:
             for event in pygame.event.get():
                  if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
             
-            # Draw lights until all the stations are drawn
-            if(n<len(route)):
-                time.sleep(0.4) # Time between drawings of stations
-                pygame.draw.circle(screen,(255, 51, 153),coords[names.index(route[n])],7)
-                pygame.draw.circle(screen,(0,0,0),coords[names.index(route[n])],3)
-                n=n+1
+            # Draw lights until all the stations are drawn.
+            # In this loop we show the intermidiate steps of the algorithm
+            for station in intermediatePath:
+                time.sleep(0.2) # Time between drawings of stations
+                pygame.draw.circle(screen,(255, 51, 153),coords[names.index(station)],7)
+                pygame.draw.circle(screen,(0,0,0),coords[names.index(station)],3)
                 pygame.display.flip()
             
-            else: 
-                # phase change
-                phase=4
+            # phase change
+            phase=4
         
         # phase 4: Display reset button. If clicked, go to phase 1
         elif phase==4:
             # We reset the drawings
             screen.blit(metroMap, (0, 0))
             
-            # We draw the path
-            for n in range(len(route)):
-                pygame.draw.circle(screen,(255, 51, 153),coords[names.index(route[n])],7)
-                pygame.draw.circle(screen,(0,0,0),coords[names.index(route[n])],3)
+            # We draw the (final) path
+            for station in route:
+                pygame.draw.circle(screen,(255, 255, 0),coords[names.index(station)],7)
+                pygame.draw.circle(screen,(0,0,0),coords[names.index(station)],3)
             
             # We draw the reset button
             screen.blit(resetButton, (460, 70))
@@ -222,7 +221,6 @@ def initGUI(graph : ig.Graph, algorithm : Callable[[ig.Graph, Callable, str, str
                     pos = pygame.mouse.get_pos()
                     # We check if the click was in the reset button
                     if resetButtonRect.collidepoint(pos): # This checks if the click was inside the rectangle of the image
-                        n = 0
                         # We reset the GUI
                         screen.blit(metroMap, (0, 0))
                         screen.blit(startButton, (460, 70))
