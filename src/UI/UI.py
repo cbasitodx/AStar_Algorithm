@@ -28,7 +28,7 @@ def initGUI(graph : ig.Graph, algorithm : Callable[[ig.Graph, Callable, str, str
     # Images:
 
     # We first get the path to the images folder
-    img_path = os.path.join(os.getcwd() + "/img")
+    img_path = os.path.join(os.getcwd() + "\\img")
 
     print(img_path)
 

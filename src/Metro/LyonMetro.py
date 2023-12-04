@@ -27,6 +27,11 @@ Function for retrieving the graph
 def getMetro():
     LyonMetro: ig.Graph = ig.Graph() # We create an empty graph to start with
 
+    # Now, we read the coordinates csv (this will be useful for the euclidean distance heuristic)
+    # This csv contains the (lat, long) irl coordinates of every station
+    coordsPath = os.path.join(os.path.dirname(__file__),"coords.csv")
+    coords : pd.DataFrame = pd.read_csv(coordsPath,delimiter=",")
+
     # First, we read the csv delimited by ";"
     csvPath = os.path.join(os.path.dirname(__file__),"lyoncsv.csv")
     lyonDF = pd.read_csv(csvPath,delimiter =";")
@@ -39,6 +44,12 @@ def getMetro():
 
     # We add the names of the stations (as an attribute of the vertices)
     LyonMetro.vs["name"] = names
+
+    # We add the coordinates to the stations as attributes
+    # (We need to do it in a for loop because the coords csv is not in the same order as our vertices)
+    for vertex in LyonMetro.vs:
+        vertex["lat"]  = coords["Lat"].loc[coords["Name"] == vertex["name"]].values[0]
+        vertex["long"] = coords["Long"].loc[coords["Name"] == vertex["name"]].values[0]
 
     # Connections list
     connections = []

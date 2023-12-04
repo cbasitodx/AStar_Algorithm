@@ -11,4 +11,4 @@ if __name__ == "__main__":
     ly = getMetro()
 
     # Now, we deploy the GUI
-    initGUI(ly, AStar, MSTHeuristic)
+    initGUI(ly, AStar, euclideanDistanceHeuristic)
