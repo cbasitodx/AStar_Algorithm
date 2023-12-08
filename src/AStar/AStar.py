@@ -26,7 +26,7 @@ def getPath(cameFrom : Dict[ig.Vertex, ig.Vertex], current : ig.Vertex, start : 
     return path
 
 '''
-Minimum Spanning Tree (MST) heuristic. It takes a graph, a starting vertex, the current vertex, and a cameFrom dictionary.
+Minimum Spanning Tree (MST) heuristic. It uses a graph, a starting vertex, the current vertex, and a cameFrom dictionary.
 With these elements, it obtains the path from "start" to "current", excludes it from the graph, and computes the MST.
 It then returns the sum of the weights of that MST
 '''
@@ -53,6 +53,9 @@ def MSTHeuristic(graph : ig.Graph, start : ig.Vertex, goal : ig.Vertex, current 
     return weight_sum
 
 '''
+Djikstra Heuristic. It uses a graph, a starting vertex, a goal vertex, the current vertex, and a cameFrom dictionary.
+With these elements, it obtains the minimum path from "start" to "current", excludes it from the graph, and computes the
+minimum cost path from "current" to "goal" using the Djikstra algorithm. It returns the cost of this path
 '''
 def djikstraHeuristic(graph : ig.Graph, start : ig.Vertex, goal : ig.Vertex, current : ig.Vertex, openSet : List[ig.Vertex], cameFrom : Dict[ig.Vertex, ig.Vertex]):
     # First, we get the current path
@@ -67,12 +70,16 @@ def djikstraHeuristic(graph : ig.Graph, start : ig.Vertex, goal : ig.Vertex, cur
     # We eliminate the edges from the copied graph
     g.delete_edges(edges)
 
-    edges_id = g.get_shortest_paths(current, to=goal, weights=g.es["weight"], output='epath', algorithm="djikstra")[0]
-    edges = [g.es[id] for id in edges_id]
-    weights = [e["weight"] for e in edges]
+    # Now, we get the shortest path from "current" to "goal" using Djikstra's algorithm
+    edges_id = g.get_shortest_paths(current, to=goal, weights=g.es["weight"], output='epath', algorithm="djikstra")[0] # This function outputs a path of edges id with the format [[...]] (thats why we index at 0)
+    edges = [g.es[id] for id in edges_id] # We now get the Vertex object from the graph
+    weights = [e["weight"] for e in edges] # Finally, we get the weights from the Vertex objects
     return sum(weights)
 
 '''
+Euclidean Distance. It uses the current vertex and a goal vertex.
+It extracts the (real) coordinates in format (lat,long) from this vertices and then computes the geodesic distance between this points in kilometers.
+We do it like this so we can consider the curvature of the earth and not just an idealised line between points in a plane
 '''
 def euclideanDistanceHeuristic(graph : ig.Graph, start : ig.Vertex, goal : ig.Vertex, current : ig.Vertex, openSet : List[ig.Vertex], cameFrom : Dict[ig.Vertex, ig.Vertex]):
     return geodesic((current["lat"], current["long"]), (goal["lat"], goal["long"])).km
@@ -173,52 +180,69 @@ def AStar(graph : ig.Graph, heuristic : Callable[[ig.Graph, ig.Vertex, ig.Vertex
 #    # This is a list that has all the nodes (IN ORDER) visited by the algorithm
 #    intermediatePath : List[str] = []
 #
-#    # We first obtain the starting vertex and the goal vertex as a igraph Vertex object
+#    # We first obtain the starting vertex and the goal vertex as an igraph Vertex object
 #    start : ig.Vertex = graph.vs.find(name=start_vertex)
 #    goal  : ig.Vertex = graph.vs.find(name=end_vertex) 
 #
 #    # Set of discovered nodes that can be (re) explored
 #    openSet : List[ig.Vertex] = [start]
 #
-#    # TODO: TERMINAR COMENTS!
+#    # Set of discovered nodes that have already been explored
 #    closedSet : List[ig.Vertex] = []
 #
+#    # For a vertex 'n', cameFrom[n] is the node preceding it on the less expensive path from the start    
 #    cameFrom : Dict[ig.Vertex, ig.Vertex] = dict()
 #
+#    # The gScore of a node makes reference to the cost of the cheapest path from 'start' to the node
+#    # We implement the gScore function as a dictionary {name(string) : gScore}
 #    gScore : Dict[ig.Vertex, float] = {v : float('inf') for v in graph.vs} # When starting, all the nodes have an infinite gScore
 #    gScore[start] = 0 # The gScore of the starting node is 0
 #
+#    # The fScore of a node tells us "how good" is the best path to the end if it goes through this node
 #    fScore : Dict[ig.Vertex, float] = {v : float('inf') for v in graph.vs} # When starting, al nodes have an infinite fScore
 #    fScore[start] = heuristic(graph, start, goal, start, openSet, cameFrom)
 #
+#    # While the openSet is not empty...
 #    while(len(openSet) != 0):
 #        
+#        # Node that we are going to expand. Its the one in the openSet with the lowest fScore value
 #        current : ig.Vertex = min(openSet, key=fScore.get)
 #
 #        if current == goal: 
+#            
+#            # We fill the intermediate path with the names of the vertices in the closed set (the closed set contains all the visited nodes IN ORDER)
 #            intermediatePath = [vertex["name"] for vertex in closedSet]
 #            finalRoute = getPath(cameFrom, current, start) 
 #            return intermediatePath, finalRoute
-#
+#        
+#        # We remove the node we are expanding from the openSet and add it to the closedSet
 #        openSet.remove(current)
 #        closedSet.append(current)
 #
+#        # Now, we expand the node:
 #        adjacent = graph.neighbors(current['name']) # Iterable object of the neighbors ID of the current vertex
 #
 #        for neigh in adjacent:
 #
+#            # We get the weight of the edge connecting 'current' and 'neighbor'
 #            neighbor : ig.Vertex = graph.vs[neigh] # Since I only have the ID, I need to get the ig.Vertex object
 #            edge = graph.es[graph.get_eid(current['name'], neighbor['name'])] # We first get the edge connecting 'current' and 'neighbor'
 #            weight = edge['weight']
 #
+#            # We calculate the new gScore for each neighbor. If its less than the one it had, then that means we found a better path to the neighbor node!
+#            # In that case, we update said neighbor node
 #            new_gScore = gScore[current] + weight
 #
+#            # If the neighbor node wasnt in the openSet nor in the closedSet, this means we havent explored it. 
+#            # So, we add it to the openSet and update its values
 #            if (neighbor not in openSet and neighbor not in closedSet):
 #                openSet.append(neighbor)
 #                cameFrom[neighbor] = current
 #                gScore[neighbor] = new_gScore
 #                fScore[neighbor] = new_gScore + heuristic(graph, start, goal, neighbor, openSet, cameFrom)
 #
+#            # In this case, the node has been explored, but we found a shorter path to it
+#            # So, we update the neighbor information with the new shortest path that goes through it
 #            elif (neighbor in openSet and new_gScore < gScore[neighbor]):
 #                cameFrom[neighbor] = current
 #                gScore[neighbor] = new_gScore

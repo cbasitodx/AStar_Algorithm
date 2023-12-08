@@ -5,6 +5,10 @@ import igraph as ig
 from typing import Callable, Dict, List, Tuple
 
 '''
+This file only contains a function for initializing and handling the GUI 
+'''
+
+'''
 Method that initializes the GUI. It takes as an argument the Lyon Metro graph, an informed-search pathfinding algorithm,
 and a heuristic (for the algorithm)
 '''
@@ -14,7 +18,7 @@ def initGUI(graph : ig.Graph, algorithm : Callable[[ig.Graph, Callable, str, str
     # List with the name of the stations
     names : List[str] = list(graph.vs["name"])
     
-    # List with the coords of the metro stations
+    # List with the coords of the metro stations (in the drawing plane)
     coords : List[Tuple[int]] = [(572, 240), (508, 226), (469, 216), (428, 205), (388, 194), (360, 186), (306, 190), (275, 193), (238, 197), (197, 206), (198, 230), (184, 268), (167, 295), (157, 320), (106, 526), (175, 463), (188, 432), (209, 382), (224, 342), (246, 290), (250, 258), (289, 238), (298, 211), (184, 85), (159, 138), (178, 160), (195, 181), (62, 123), (65, 157), (66, 210), (154, 250), (228, 280), (280, 308), (323, 330), (350, 343), (386, 359), (410, 379), (418, 442), (419, 494), (422, 584)]
 
     pygame.init()
@@ -28,6 +32,9 @@ def initGUI(graph : ig.Graph, algorithm : Callable[[ig.Graph, Callable, str, str
     # Images:
 
     # We first get the path to the images folder
+
+    #os.chdir("..") # Decomment only if running from console!
+
     img_path = os.path.join(os.getcwd() + "\\img")
 
     print(img_path)
